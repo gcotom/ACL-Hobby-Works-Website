@@ -1,0 +1,229 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0f14;
+  --fg: #0b1220;
+  --grid: rgba(255,255,255,0.05);
+}
+
+html, body {
+  height: 100%;
+}
+
+.app-bg {
+  background:
+    radial-gradient(1000px circle at 10% -10%, rgba(104,216,255,0.18), transparent 60%),
+    radial-gradient(1200px circle at 120% 10%, rgba(92,255,214,0.12), transparent 60%),
+    var(--bg);
+}
+
+.app-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.02),
+      rgba(255,255,255,0.02) 1px,
+      transparent 2px,
+      transparent 4px
+    );
+}
+
+.bg-grid::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(transparent 0, transparent 23px, var(--grid) 24px),
+    linear-gradient(90deg, transparent 0, transparent 23px, var(--grid) 24px);
+  background-size: 24px 24px, 24px 24px;
+  mask-image: radial-gradient(1000px circle at 50% 20%, rgba(0,0,0,0.7), transparent 70%);
+}
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui;
+  letter-spacing: 0.01em;
+}
+
+.font-display, h1, h2, h3 {
+  font-family: var(--font-display), ui-sans-serif, system-ui;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ---- NAV LINK WITH ANIMATED UNDERLINE ---- */
+.nav-link {
+  position: relative;
+  padding-bottom: 4px;
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  background: linear-gradient(90deg, #19d4c0, #587dff);
+  border-radius: 2px;
+  box-shadow: 0 0 8px rgba(88,125,255,0.6);
+  transition:
+    width 0.25s ease-out,
+    box-shadow 0.3s ease-out,
+    filter 0.3s ease-out;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+  box-shadow: 0 0 12px rgba(88,125,255,0.9);
+  filter: brightness(1.2);
+}
+
+.nav-link-active::after {
+  width: 100%;
+  box-shadow: 0 0 14px rgba(88,125,255,0.9);
+}
+
+/* ---- CARDS & BUTTONS ---- */
+.card-glass {
+  @apply bg-white/5 backdrop-blur border border-white/10 shadow-glow rounded-3xl;
+}
+
+.header-glass {
+  box-shadow: 0 6px 30px rgba(0,0,0,0.25);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #22ffd6 0%, #7aa2ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.btn-primary {
+  @apply px-4 py-2 rounded-2xl text-white font-semibold;
+  background: linear-gradient(90deg, #19d4c0 0%, #587dff 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 10px 25px rgba(56,128,255,0.25),
+    0 3px 0 rgba(255,255,255,0.06) inset;
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.btn-tech {
+  position: relative;
+  isolation: isolate;
+}
+
+.btn-tech::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 1.25rem;
+  background: conic-gradient(from 0deg, rgba(34,255,214,0.2), rgba(104,216,255,0.2), rgba(88,125,255,0.2), rgba(34,255,214,0.2));
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.btn-ghost {
+  @apply px-4 py-2 rounded-2xl border border-white/20 text-white/90;
+  background: rgba(255,255,255,0.02);
+}
+
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+/* ---- PAGE ENTRANCE ANIMATIONS ---- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeUp .5s ease-out both;
+}
+
+.delay-1 { animation-delay: .06s; }
+.delay-2 { animation-delay: .12s; }
+.delay-3 { animation-delay: .18s; }
+.delay-4 { animation-delay: .24s; }
+
+/* ========= HERO MONOGRAM “A” (animated) ========= */
+
+.logoA-wrap {
+  position: relative;
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+
+.logoA-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  min-height: 320px;
+}
+
+.logoA-svg {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+}
+
+.logoA-stroke {
+  paint-order: stroke fill;
+  filter: drop-shadow(0 0 10px rgba(104,216,255,0.2));
+}
+
+/* rotating the whole icon */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+/* dashing/scan around the outline */
+@keyframes dash {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -400; }
+}
+.dash-run {
+  stroke-dasharray: 12 10;
+  animation: dash 3.2s linear infinite;
+  opacity: 0.95;
+}
+
+/* tiny floating HUD elements for depth */
+.logoA-chip {
+  position: absolute;
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #22ffd6, #7aa2ff);
+  box-shadow: 0 0 16px rgba(88,125,255,0.45);
+  opacity: 0.8;
+}
+@keyframes chip-float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.chip-1 { top: 16%; left: 12%; animation: chip-float 3.6s ease-in-out infinite; }
+.chip-2 { bottom: 12%; right: 10%; animation: chip-float 4.4s ease-in-out infinite; }
+
+/* Keep the previous chip-float name for compatibility */
+.holo-wrap {}
+.holo-stage {}
+.holo-ring {}
+.holo-core {}

@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Using SQLite locally. When you deploy, switch this to "postgresql" and point DATABASE_URL to Postgres.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  priceCents  Int
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Quote {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  baseLegion  String?
+  helmet      String?
+  finish      String?
+  quantity    Int       @default(1)
+  refs        String?
+  budget      String?
+  deadline    String?
+  notes       String?
+
+  // Was: status QuoteStatus @default(PENDING)
+  // SQLite doesn't support Prisma enums; use a string with a default.
+  status      String    @default("PENDING")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
