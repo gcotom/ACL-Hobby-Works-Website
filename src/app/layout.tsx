@@ -5,9 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/assets/logo.png";
 import { usePathname } from "next/navigation";
-
 import { Orbitron, Rajdhani } from "next/font/google";
-import { SessionProvider, useSession, signIn, signOut } from "next-auth/react";
 
 const display = Orbitron({
   subsets: ["latin"],
@@ -26,42 +24,10 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className={`nav-link hover:text-white ${
-        isActive ? "text-white nav-link-active" : "text-white/70"
-      }`}
+      className={`nav-link hover:text-white ${isActive ? "text-white nav-link-active" : "text-white/70"}`}
     >
       {label}
     </Link>
-  );
-}
-
-function AuthLinks() {
-  const { data: session } = useSession();
-  return (
-    <div className="flex items-center gap-4">
-      {session?.user?.email ? (
-        <>
-          <NavLink href="/admin" label="Admin" />
-          <button
-            onClick={() => signOut({ redirectTo: "/" })}
-            className="text-white/70 hover:text-white nav-link"
-            type="button"
-            aria-label="Sign out"
-          >
-            Sign out
-          </button>
-        </>
-      ) : (
-        <button
-          onClick={() => signIn("github")}
-          className="text-white/70 hover:text-white nav-link"
-          type="button"
-          aria-label="Sign in"
-        >
-          Sign in
-        </button>
-      )}
-    </div>
   );
 }
 
@@ -72,65 +38,62 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${display.variable} ${sans.variable} min-h-screen text-white app-bg bg-grid`}>
-        <SessionProvider>
-          <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur header-glass">
-            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Image
-                  src={Logo}
-                  width={32}
-                  height={32}
-                  alt="ACL Hobby Works logo"
-                  className="rounded-sm ring-1 ring-white/10"
-                  priority
-                />
-                <span className="font-display font-semibold tracking-wider uppercase">
-                  ACL Hobby Works
-                </span>
-              </div>
-
-              <nav className="hidden md:flex items-center gap-6 text-sm">
-                <NavLink href="/" label="Home" />
-                <NavLink href="/gallery" label="Gallery" />
-                <NavLink href="/shop" label="Shop" />
-                <NavLink href="/quote" label="Get a Quote" />
-                <AuthLinks />
-              </nav>
-
-              <Link
-                href="/quote"
-                className={`btn-primary btn-tech transition ${onQuotePage ? "animate-pulse" : ""}`}
-              >
-                Request Custom
-              </Link>
+        <header className="sticky top-0 z-40 border-b border-white/10 bg-black/40 backdrop-blur header-glass">
+          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Image
+                src={Logo}
+                width={32}
+                height={32}
+                alt="ACL Hobby Works logo"
+                className="rounded-sm ring-1 ring-white/10"
+                priority
+              />
+              <span className="font-display font-semibold tracking-wider uppercase">
+                ACL Hobby Works
+              </span>
             </div>
-          </header>
 
-          <main>{children}</main>
+            <nav className="hidden md:flex items-center gap-6 text-sm">
+              <NavLink href="/" label="Home" />
+              <NavLink href="/gallery" label="Gallery" />
+              <NavLink href="/shop" label="Shop" />
+              <NavLink href="/quote" label="Get a Quote" />
+            </nav>
 
-          <footer className="border-t border-white/10">
-            <div className="max-w-6xl mx-auto px-4 py-8 text-sm text-white/70 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <Image
-                  src={Logo}
-                  width={20}
-                  height={20}
-                  alt="ACL logo small"
-                  className="rounded-sm ring-1 ring-white/10"
-                />
-                <p>
-                  © {new Date().getFullYear()} ACL Hobby Works. Not affiliated with LEGO® or
-                  Lucasfilm™.
-                </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <a href="#" className="hover:text-white nav-link">Instagram</a>
-                <a href="#" className="hover:text-white nav-link">Shop</a>
-                <Link href="/quote" className="hover:text-white nav-link">Custom Request</Link>
-              </div>
+            <Link
+              href="/quote"
+              className={`btn-primary btn-tech transition ${onQuotePage ? "animate-pulse" : ""}`}
+            >
+              Request Custom
+            </Link>
+          </div>
+        </header>
+
+        <main>{children}</main>
+
+        <footer className="border-t border-white/10">
+          <div className="max-w-6xl mx-auto px-4 py-8 text-sm text-white/70 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Image
+                src={Logo}
+                width={20}
+                height={20}
+                alt="ACL logo small"
+                className="rounded-sm ring-1 ring-white/10"
+              />
+              <p>
+                © {new Date().getFullYear()} ACL Hobby Works. Not affiliated with LEGO® or
+                Lucasfilm™.
+              </p>
             </div>
-          </footer>
-        </SessionProvider>
+            <div className="flex items-center gap-4">
+              <a href="#" className="hover:text-white nav-link">Instagram</a>
+              <a href="#" className="hover:text-white nav-link">Shop</a>
+              <Link href="/quote" className="hover:text-white nav-link">Custom Request</Link>
+            </div>
+          </div>
+        </footer>
       </body>
     </html>
   );
