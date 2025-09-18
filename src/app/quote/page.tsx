@@ -6,87 +6,69 @@ import CaptchaField from "../../components/CaptchaField";
 import FormMeta from "../../components/FormMeta";
 import { checkAndRecord } from "../../lib/rate-limit";
 
-/* Friendly messages */
+/* Friendly error messages */
 function errorMessage(key?: string) {
   switch (key) {
-    case "captcha_missing":
-      return "Please check the “I’m not a robot” box.";
-    case "captcha_invalid_secret":
-      return "Server reCAPTCHA secret is invalid. Double-check RECAPTCHA_SECRET_KEY in .env.";
-    case "captcha_invalid_keytype":
-      return "Your site key is for reCAPTCHA v3. Create a v2 “I’m not a robot” key.";
-    case "captcha_hostname":
-      return "Site key doesn’t match this domain. Add “localhost” and “127.0.0.1” in reCAPTCHA.";
-    case "captcha_timeout":
-      return "Captcha expired. Please try again.";
-    case "captcha_badrequest":
-      return "Captcha verification failed (bad request). Please retry.";
-    case "rate_interval":
-      return "You’re going a bit fast. Please wait ~30 seconds and try again.";
-    case "rate_burst":
-      return "Too many requests in a short period. Please slow down and try again later.";
-    default:
-      return "Verification failed. Please try again.";
+    case "captcha_missing": return "Please check the “I’m not a robot” box.";
+    case "captcha_invalid_secret": return "Server reCAPTCHA secret is invalid. Check RECAPTCHA_SECRET_KEY.";
+    case "captcha_invalid_keytype": return "Your site key is v3. Create a v2 “I’m not a robot” key.";
+    case "captcha_hostname": return "Site key doesn’t match this domain. Add localhost / 127.0.0.1 in reCAPTCHA.";
+    case "captcha_timeout": return "Captcha expired. Try again.";
+    case "captcha_badrequest": return "Captcha verification failed (bad request). Try again.";
+    case "rate_interval": return "You’re going a bit fast. Please wait ~30 seconds.";
+    case "rate_burst": return "Too many requests. Please slow down and try later.";
+    default: return "Verification failed. Please try again.";
   }
 }
 
 export default function QuotePage({
   searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) {
+}: { searchParams?: { [k: string]: string | string[] | undefined } }) {
   async function createQuote(formData: FormData) {
     "use server";
 
-    /* ---------- Honeypot (hidden field) ---------- */
+    // Honeypot (hidden field)
     const honeypot = String(formData.get("company") || "");
     if (honeypot.trim().length > 0) {
-      await new Promise((r) => setTimeout(r, 350)); // slow bots a hair
+      await new Promise((r) => setTimeout(r, 350));
       redirect("/quote/thanks");
     }
 
-    /* ---------- Time-trap (dwell time) ---------- */
+    // Time-trap (dwell ≥ 2.5s)
     const startedAt = Number(formData.get("startedAt") || 0);
     if (!Number.isFinite(startedAt) || Date.now() - startedAt < 2500) {
       await new Promise((r) => setTimeout(r, 350));
       redirect("/quote/thanks");
     }
 
-    /* ---------- Rate limit per IP ---------- */
+    // Rate limit per IP (KV if available; else memory)
     const ip =
       headers().get("x-forwarded-for")?.split(",")[0]?.trim() ||
       headers().get("x-real-ip") ||
       "unknown";
-    const gate = checkAndRecord(String(ip));
-    if (!gate.ok) {
-      redirect(`/quote?error=rate_${gate.reason}`);
-    }
+    const gate = await checkAndRecord(String(ip));
+    if (!gate.ok) redirect(`/quote?error=rate_${gate.reason}`);
 
-    /* ---------- reCAPTCHA (server verify) ---------- */
+    // reCAPTCHA (server verification)
     const token = String(formData.get("recaptchaToken") || "");
     const secret = process.env.RECAPTCHA_SECRET_KEY || "";
-
     if (secret) {
       if (!token) redirect("/quote?error=captcha_missing");
-
       const params = new URLSearchParams();
       params.append("secret", secret);
       params.append("response", token);
-
       const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: params,
         cache: "no-store",
       });
-
       const json: any = await res.json();
       if (!json?.success) {
         const codes: string[] = (json?.["error-codes"] || []) as string[];
         let reason = "captcha";
         if (codes.includes("missing-input-response")) reason = "captcha_missing";
-        else if (codes.includes("missing-input-secret") || codes.includes("invalid-input-secret"))
-          reason = "captcha_invalid_secret";
+        else if (codes.includes("missing-input-secret") || codes.includes("invalid-input-secret")) reason = "captcha_invalid_secret";
         else if (codes.includes("invalid-key-type")) reason = "captcha_invalid_keytype";
         else if (codes.includes("timeout-or-duplicate")) reason = "captcha_timeout";
         else if (codes.includes("bad-request")) reason = "captcha_badrequest";
@@ -95,7 +77,7 @@ export default function QuotePage({
       }
     }
 
-    /* ---------- Save + notify ---------- */
+    // Save + notify
     const data = {
       name: String(formData.get("name") || ""),
       email: String(formData.get("email") || ""),
@@ -112,12 +94,11 @@ export default function QuotePage({
     const quote = await prisma.quote.create({ data });
     await sendQuoteNotifications(quote).catch(() => {});
 
-    const nameParam = encodeURIComponent(data.name || "");
-    redirect(`/quote/thanks?name=${nameParam}`);
+    redirect(`/quote/thanks?name=${encodeURIComponent(data.name || "")}`);
   }
 
   const errKey = typeof searchParams?.error === "string" ? searchParams?.error : undefined;
-  const isCaptchaErr = !!errKey && (errKey.startsWith("captcha") || errKey.startsWith("rate"));
+  const showErr = !!errKey && (errKey.startsWith("captcha") || errKey.startsWith("rate"));
   const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "";
 
   return (
@@ -129,7 +110,7 @@ export default function QuotePage({
         Tell us about the custom clone trooper you&apos;d like to commission — colors, battalion, accessories — and we&apos;ll email you back with a quote.
       </p>
 
-      {errKey && (
+      {showErr && (
         <div className="mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           {errorMessage(errKey)}
         </div>
@@ -173,7 +154,7 @@ export default function QuotePage({
         <input name="deadline" className="px-4 py-3 rounded-xl border border-white/15 bg-white/5" placeholder="Deadline (optional)" />
         <textarea name="notes" className="px-4 py-3 rounded-xl border border-white/15 bg-white/5 min-h-[140px]" placeholder="Describe armor markings, accessories, and any special requests." />
 
-        {/* Honeypot (kept in DOM, off-screen) */}
+        {/* Honeypot (off-screen) */}
         <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
           <label htmlFor="company">Company</label>
           <input id="company" name="company" tabIndex={-1} autoComplete="off" />
@@ -183,14 +164,12 @@ export default function QuotePage({
         <FormMeta />
 
         {/* reCAPTCHA */}
-        <CaptchaField siteKey={siteKey} captchaError={isCaptchaErr} />
+        <CaptchaField siteKey={siteKey} captchaError={showErr} />
 
         <button className="btn-primary btn-tech">Request quote</button>
       </form>
 
-      <p className="mt-3 text-xs text-white/50 text-center">
-        We&apos;ll email you back within 1–2 business days.
-      </p>
+      <p className="mt-3 text-xs text-white/50 text-center">We&apos;ll email you back within 1–2 business days.</p>
     </section>
   );
 }
