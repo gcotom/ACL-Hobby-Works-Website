@@ -38,7 +38,7 @@ async function sendOwnerEmail(q: QuoteLike) {
     subject,
     text: lines,
     html: htmlSummary(q),
-    replyTo: q.email || undefined,
+    reply_to: q.email || undefined,
   });
 }
 

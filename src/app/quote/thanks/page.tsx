@@ -1,11 +1,17 @@
-"use client";
-
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-export default function QuoteThanksPage() {
-  const params = useSearchParams();
-  const name = (params.get("name") || "").trim();
+export default function QuoteThanksPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const raw = typeof searchParams?.name === "string" ? searchParams.name : "";
+  let name = "";
+  try {
+    name = decodeURIComponent(raw);
+  } catch {
+    name = raw;
+  }
 
   return (
     <section className="max-w-2xl mx-auto px-4 py-20 text-center">
@@ -13,8 +19,8 @@ export default function QuoteThanksPage() {
         Request received{ name ? `, ${name}` : "" }!
       </h1>
       <p className="mt-4 text-white/80">
-        Thanks for sending your custom trooper idea. We’ll review the details and reply to your email within
-        <span className="font-semibold"> 1–2 business days</span>.
+        Thanks for sending your custom trooper idea. We’ll review the details and reply to your email
+        within <span className="font-semibold">1–2 business days</span>.
       </p>
 
       <div className="mt-6 text-sm text-white/60">
